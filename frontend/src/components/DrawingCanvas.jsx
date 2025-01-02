@@ -7,18 +7,19 @@ const DrawingCanvas = () => {
   const canvasRef = useRef(null);
   const [socket, setSocket] = useState(null);
 
-  useEffect(() => {
-    debugger
-    const socketConnection = io('http://localhost:5000'); // Connect to your server
+  const callConnection = ()=>{
+    const socketConnection = io(process.env.REACT_APP_SERVER_URL);
     setSocket(socketConnection);
+    return socketConnection;
+  }
+
+  useEffect(() => {
+    const socketConnection = callConnection();
     return () => {
         socketConnection.disconnect();
       };
   }, []);
-  const callConnection = ()=>{
-    const socketConnection = io('http://localhost:5000'); // Connect to your server
-    setSocket(socketConnection);
-  }
+  
   const draw = (e) => {
     if (!socket) return;
 

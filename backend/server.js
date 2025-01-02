@@ -1,29 +1,36 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-
+const express = require("express");
+const http = require("http");
+require("dotenv").config();
+const { Server } = require("socket.io");
 const app = express();
 const server = http.createServer(app);
-
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000", // Replace this with the frontend URL
+    origin: process.env.CLIENT_URL,
   },
 });
+let connectedUsers = [];
 
-io.on("connection", (socket, user) => {
-  console.log(user)
-  console.log("A user connected");
+io.on("connection", (socket) => {
+  const username = socket.handshake.query.username;
+  if (connectedUsers.find((user) => user.username === username)) {
+    socket.emit("connectionRejected", "This username is already taken.");
+    socket.disconnect();
+    return;
+  }
+  connectedUsers.push({ id: socket.id, username }); // Send the updated user list to all clients
+  io.emit(
+    "updateUserList",
+    connectedUsers.map((user) => user.username)
+  );
   socket.on("disconnect", () => {
-    console.log("A user disconnected");
+    connectedUsers = connectedUsers.filter((user) => user.id !== socket.id);
+    io.emit(
+      "updateUserList",
+      connectedUsers.map((user) => user.username)
+    );
   });
-  socket.on('draw', (data) => {
-    socket.broadcast.emit('draw', data);
-  });
-})
-;
-
-
+});
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
