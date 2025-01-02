@@ -27,7 +27,7 @@ export function SocketProvider({ children }) {
     });
 
     socketConnection.on('updateUserList', (users) => {
-      setConnectedUsers(users);
+      setConnectedUsers(users); 
     });
 
     socketConnection.on('disconnect', () => {
