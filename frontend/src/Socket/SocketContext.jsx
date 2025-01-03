@@ -13,29 +13,40 @@ export function SocketProvider({ children }) {
   const [connectedUsers, setConnectedUsers] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const connectSocket = (serverUrl, username) => {
-    const socketConnection = io(serverUrl, { query: { username } });
-
-    socketConnection.on('connect', () => {
-      setSocket(socketConnection);
-      setSocketConnected(true);
-      setErrorMessage('');
-    });
-
-    socketConnection.on('connectionRejected', (message) => {
-      setErrorMessage(message);
-    });
-
-    socketConnection.on('updateUserList', (users) => {
-      setConnectedUsers(users); 
-    });
-
-    socketConnection.on('disconnect', () => {
-      setSocket(null);
-      setSocketConnected(false);
-      setConnectedUsers([]);
+  const connectSocket = (serverUrl, username, serverName) => {
+    return new Promise((resolve) => {
+      const socketConnection = io(serverUrl, { query: { username, serverName } });
+  
+      let isConnectionRejected = false; // Track if connection was rejected
+  
+      socketConnection.on('connect', () => {
+        if (!isConnectionRejected) {
+          setSocket(socketConnection);
+          setSocketConnected(true);
+          setErrorMessage('');
+          resolve({ success: true, message: "Connection Successful" });
+        }
+      });
+  
+      socketConnection.on('connectionRejected', (message) => {
+        isConnectionRejected = true;
+        setErrorMessage(message);
+        resolve({ success: false, message: message });
+        socketConnection.disconnect(); // Ensure socket is disconnected after rejection
+      });
+  
+      socketConnection.on('updateUserList', (users) => {
+        setConnectedUsers(users);
+      });
+  
+      socketConnection.on('disconnect', () => {
+        setSocket(null);
+        setSocketConnected(false);
+        setConnectedUsers([]);
+      });
     });
   };
+  
 
   const disconnectSocket = () => {
     if (socket) {

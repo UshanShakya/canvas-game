@@ -1,14 +1,18 @@
 import './App.css';
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import GameCard from './components/GameCard';
-<script src="https://cdn.jsdelivr.net/npm/react-bootstrap@2.8.0/dist/react-bootstrap.min.js"></script>
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import HomePage from './components/HomePage';
+import PlayGamePage from './components/PlayGamePage';
 
 function App() {
   return (
-    <div className="container mt-5">
-      <GameCard />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/playgame/:serverName" element={<PlayGamePage />} />
+      </Routes>
+    </Router>
   );
 }
 
